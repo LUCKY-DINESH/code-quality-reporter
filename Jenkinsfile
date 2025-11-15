@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        SONAR_SCANNER = tool 'Sonarqube'
+        SONAR_SCANNER = tool 'sonarqube'
     }
 
     stages {
@@ -67,6 +67,7 @@ pipeline {
         }
     }
 }
+
 
 
 
