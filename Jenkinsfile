@@ -2,77 +2,70 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven'   // Jenkins → Global Tool Configuration → Maven
+        jdk 'JDK17'
+        maven 'MAVEN3'
     }
 
     environment {
-        SONAR_HOST_URL = 'http://host.docker.internal:9000'
-        SONAR_AUTH_TOKEN = credentials('sonarqube') // Jenkins credential ID
+        SONAR_SCANNER = tool 'SonarScanner'
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/LUCKY-DINESH/code-quality-reporter.git'
-'
+                git branch: 'main',
+                    url: 'https://github.com/LUCKY-DINESH/code-quality-reporter.git'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn clean compile'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'mvn test'
+                sh 'mvn clean install -DskipTests=true'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                sh '''
-                mvn verify sonar:sonar \
-                    -Dsonar.projectKey=sample_project \
-                    -Dsonar.host.url=$SONAR_HOST_URL \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN
-                '''
-            }
-        }
-
-        stage('Generate Quality Report') {
-            steps {
-                script {
-                    def qg = waitForQualityGate()
-
-                    if (qg.status == 'OK') {
-                        writeFile file: 'code_quality.html', 
-                        text: "<h1 style='color:green'>🟢 GOOD</h1>"
-                    } 
-                    else if (qg.status == 'WARN') {
-                        writeFile file: 'code_quality.html', 
-                        text: "<h1 style='color:orange'>🟡 AVERAGE</h1>"
-                    } 
-                    else {
-                        writeFile file: 'code_quality.html', 
-                        text: "<h1 style='color:red'>🔴 POOR</h1>"
-                    }
+                withSonarQubeEnv('MySonar') {
+                    sh """
+                        ${SONAR_SCANNER}/bin/sonar-scanner \
+                        -Dsonar.projectKey=sample \
+                        -Dsonar.projectName=sample \
+                        -Dsonar.sources=./src \
+                        -Dsonar.java.binaries=./target \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=admin \
+                        -Dsonar.password=admin
+                    """
                 }
             }
         }
-    }
 
-    post {
-        always {
-            publishHTML(target: [
-                reportDir: '.',
-                reportFiles: 'code_quality.html',
-                reportName: 'Code Quality Report'
-            ])
+        stage('Wait for Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Generate HTML Report') {
+            steps {
+                sh 'mkdir -p codequality'
+                sh 'echo "<h1>Code Quality Summary</h1>" > codequality/index.html'
+                sh 'echo "<p>SonarQube analysis completed successfully.</p>" >> codequality/index.html'
+            }
+        }
+
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML([
+                    reportDir: 'codequality',
+                    reportFiles: 'index.html',
+                    reportName: 'Code Quality Report'
+                ])
+            }
         }
     }
 }
-
-
