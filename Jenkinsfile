@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk21'           // Must exist in Jenkins Global Tool Configuration
-        maven 'maven'         // Must exist in Jenkins Global Tool Configuration
+        jdk 'jdk21'
+        maven 'maven'
+        sonarScanner 'sonarqube'
     }
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${PATH}"
-        SONAR_SCANNER = tool 'sonarqube'   // Name must match Jenkins Tool Config
+        SONAR_SCANNER_HOME = tool 'sonarqube'
     }
 
     stages {
@@ -28,24 +29,19 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-    environment {
-        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
-        PATH = "${JAVA_HOME}/bin:${PATH}"
-    }
-    steps {
-        withSonarQubeEnv('sonarqube') {
-            sh """
-                java -version
-                sonar-scanner \
-                  -Dsonar.projectKey=code-quality-reporter \
-                  -Dsonar.projectName=code-quality-reporter \
-                  -Dsonar.sources=. \
-                  -Dsonar.host.url=http://host.docker.internal:9000
-            """
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh """
+                        java -version
+                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                          -Dsonar.projectKey=code-quality-reporter \
+                          -Dsonar.projectName=code-quality-reporter \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=http://host.docker.internal:9000
+                    """
+                }
+            }
         }
-    }
-}
-
 
         stage('Wait for Quality Gate') {
             steps {
@@ -77,5 +73,3 @@ pipeline {
         }
     }
 }
-
-
