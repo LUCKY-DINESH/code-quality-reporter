@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk21'          // Configure in Jenkins Global Tools
-        maven 'maven'        // Configure in Jenkins Global Tools
+        jdk 'jdk21'           // Must exist in Jenkins Global Tool Configuration
+        maven 'maven'         // Must exist in Jenkins Global Tool Configuration
     }
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${PATH}"
+        SONAR_SCANNER = tool 'sonarscanner'   // Name must match Jenkins Tool Config
     }
 
     stages {
@@ -26,7 +27,8 @@ pipeline {
             }
         }
 
-         steps {
+        stage('SonarQube Analysis') {
+            steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
                         ${SONAR_SCANNER}/bin/sonar-scanner \
@@ -38,7 +40,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Wait for Quality Gate') {
             steps {
@@ -70,7 +71,3 @@ pipeline {
         }
     }
 }
-}
-
-
-
