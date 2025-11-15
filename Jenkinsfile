@@ -9,7 +9,7 @@ pipeline {
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${PATH}"
-        SONAR_SCANNER = tool 'sonarscanner'   // Name must match Jenkins Tool Config
+        SONAR_SCANNER = tool 'sonarqube'   // Name must match Jenkins Tool Config
     }
 
     stages {
@@ -71,3 +71,4 @@ pipeline {
         }
     }
 }
+
