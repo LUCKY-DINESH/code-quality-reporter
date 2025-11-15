@@ -7,7 +7,7 @@ pipeline {
         jdk 'JDK24'
 
         // Also configure Maven and name it "MAVEN3"
-        maven 'MAVEN3'
+        maven 'maven'
     }
 
     environment {
@@ -67,4 +67,5 @@ pipeline {
         }
     }
 }
+
 
