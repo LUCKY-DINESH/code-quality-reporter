@@ -26,18 +26,19 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
+         steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
-                        sonar-scanner \
+                        ${SONAR_SCANNER}/bin/sonar-scanner \
                         -Dsonar.projectKey=code-quality-reporter \
+                        -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=http://host.docker.internal:9000
                     """
                 }
             }
         }
+
 
         stage('Wait for Quality Gate') {
             steps {
@@ -69,3 +70,4 @@ pipeline {
         }
     }
 }
+
