@@ -2,14 +2,16 @@ pipeline {
     agent any
 
     tools {
+        // Make sure in Jenkins → Global Tool Configuration
+        // You configure a JDK and name it "JDK17"
         jdk 'jdk21'
+
+        // Also configure Maven and name it "MAVEN3"
         maven 'maven'
-        sonarRunner 'sonarqube'    // ✔ Correct tool
     }
 
     environment {
-        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
-        PATH = "${JAVA_HOME}/bin:${PATH}"
+        SONAR_SCANNER = tool 'sonarqube'
     }
 
     stages {
@@ -21,17 +23,15 @@ pipeline {
             }
         }
 
-        stage('Verify Java') {
-            steps {
-                sh "java -version"
-            }
-        }
-
         stage('SonarQube Analysis') {
+            environment {
+        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "${JAVA_HOME}/bin:${PATH}"
+    }
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
-                        ${SONAR_RUNNER_HOME}/bin/sonar-scanner \
+                        ${SONAR_SCANNER}/bin/sonar-scanner \
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
@@ -53,7 +53,7 @@ pipeline {
             steps {
                 sh 'mkdir -p report'
                 sh 'echo "<h1>Code Quality Report</h1>" > report/index.html'
-                sh 'echo "<p>Analysis Successful</p>" >> report/index.html'
+                sh 'echo "<p>SonarQube Quality Gate Passed.</p>" >> report/index.html'
             }
         }
 
@@ -71,3 +71,5 @@ pipeline {
         }
     }
 }
+
+
