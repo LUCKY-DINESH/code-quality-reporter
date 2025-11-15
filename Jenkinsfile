@@ -28,18 +28,24 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh """
-                        ${SONAR_SCANNER}/bin/sonar-scanner \
-                        -Dsonar.projectKey=code-quality-reporter \
-                        -Dsonar.projectName=code-quality-reporter \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://host.docker.internal:9000
-                    """
-                }
-            }
+    environment {
+        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "${JAVA_HOME}/bin:${PATH}"
+    }
+    steps {
+        withSonarQubeEnv('sonarqube') {
+            sh """
+                java -version
+                sonar-scanner \
+                  -Dsonar.projectKey=code-quality-reporter \
+                  -Dsonar.projectName=code-quality-reporter \
+                  -Dsonar.sources=. \
+                  -Dsonar.host.url=http://host.docker.internal:9000
+            """
         }
+    }
+}
+
 
         stage('Wait for Quality Gate') {
             steps {
@@ -71,4 +77,5 @@ pipeline {
         }
     }
 }
+
 
