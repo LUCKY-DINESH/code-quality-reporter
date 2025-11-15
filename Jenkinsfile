@@ -24,6 +24,10 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            environment {
+        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "${JAVA_HOME}/bin:${PATH}"
+    }
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
@@ -67,6 +71,7 @@ pipeline {
         }
     }
 }
+
 
 
 
