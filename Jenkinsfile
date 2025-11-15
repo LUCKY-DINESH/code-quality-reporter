@@ -14,7 +14,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/LUCKY-DINESH/code-quality-reporter.git
+                git 'https://github.com/LUCKY-DINESH/code-quality-reporter.git'
 '
             }
         }
@@ -74,4 +74,5 @@ pipeline {
         }
     }
 }
+
 
