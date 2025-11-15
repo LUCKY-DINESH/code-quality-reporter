@@ -4,7 +4,7 @@ pipeline {
     tools {
         // Make sure in Jenkins → Global Tool Configuration
         // You configure a JDK and name it "JDK17"
-        jdk 'JDK17'
+        jdk 'JDK24'
 
         // Also configure Maven and name it "MAVEN3"
         maven 'MAVEN3'
@@ -67,3 +67,4 @@ pipeline {
         }
     }
 }
+
