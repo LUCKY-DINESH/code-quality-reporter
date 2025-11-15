@@ -25,13 +25,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('MySonar') {
+                withSonarQubeEnv('sonarqube') {
                     sh """
                         ${SONAR_SCANNER}/bin/sonar-scanner \
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=http://localhost:9000
+                        -Dsonar.host.url=http://host.docker.internal:9000
                     """
                 }
             }
@@ -67,6 +67,7 @@ pipeline {
         }
     }
 }
+
 
 
 
