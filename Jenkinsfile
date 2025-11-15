@@ -2,16 +2,15 @@ pipeline {
     agent any
 
     tools {
-        // Make sure in Jenkins → Global Tool Configuration
-        // You configure a JDK and name it "JDK17"
+        // Must match Jenkins → Global Tool Configuration names
         jdk 'jdk21'
-
-        // Also configure Maven and name it "MAVEN3"
         maven 'maven'
+        sonarScanner 'sonarqube'
     }
 
     environment {
-        SONAR_SCANNER = tool 'sonarqube'
+        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "${JAVA_HOME}/bin:${PATH}"
     }
 
     stages {
@@ -23,18 +22,22 @@ pipeline {
             }
         }
 
+        stage('Verify Java Installation') {
+            steps {
+                sh "java -version"
+                sh "echo Using JAVA_HOME = $JAVA_HOME"
+            }
+        }
+
         stage('SonarQube Analysis') {
-            environment {
-        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
-        PATH = "${JAVA_HOME}/bin:${PATH}"
-    }
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
-                        ${SONAR_SCANNER}/bin/sonar-scanner \
+                        sonar-scanner \
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
+                        -Dsonar.java.binaries=target \
                         -Dsonar.host.url=http://host.docker.internal:9000
                     """
                 }
@@ -64,17 +67,9 @@ pipeline {
                     reportFiles: 'index.html',
                     reportName: 'Code Quality Report',
                     keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: false
+                    alwaysLinkToLastBuild: true
                 ])
             }
         }
     }
 }
-
-
-
-
-
-
-
