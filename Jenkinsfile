@@ -4,13 +4,12 @@ pipeline {
     tools {
         jdk 'jdk21'
         maven 'maven'
-        sonarScanner 'sonarqube'
+        sonarRunner 'sonarqube'    // ✔ Correct tool
     }
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         PATH = "${JAVA_HOME}/bin:${PATH}"
-        SONAR_SCANNER_HOME = tool 'sonarqube'
     }
 
     stages {
@@ -32,12 +31,11 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
-                        java -version
-                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                          -Dsonar.projectKey=code-quality-reporter \
-                          -Dsonar.projectName=code-quality-reporter \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=http://host.docker.internal:9000
+                        ${SONAR_RUNNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=code-quality-reporter \
+                        -Dsonar.projectName=code-quality-reporter \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://host.docker.internal:9000
                     """
                 }
             }
