@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     tools {
+        // Make sure in Jenkins → Global Tool Configuration
+        // You configure a JDK and name it "JDK17"
         jdk 'JDK17'
+
+        // Also configure Maven and name it "MAVEN3"
         maven 'MAVEN3'
     }
 
@@ -19,24 +23,15 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean install -DskipTests=true'
-            }
-        }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('MySonar') {
                     sh """
                         ${SONAR_SCANNER}/bin/sonar-scanner \
-                        -Dsonar.projectKey=sample \
-                        -Dsonar.projectName=sample \
-                        -Dsonar.sources=./src \
-                        -Dsonar.java.binaries=./target \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.login=admin \
-                        -Dsonar.password=admin
+                        -Dsonar.projectKey=code-quality-reporter \
+                        -Dsonar.projectName=code-quality-reporter \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000
                     """
                 }
             }
@@ -50,20 +45,23 @@ pipeline {
             }
         }
 
-        stage('Generate HTML Report') {
+        stage('Create HTML Report') {
             steps {
-                sh 'mkdir -p codequality'
-                sh 'echo "<h1>Code Quality Summary</h1>" > codequality/index.html'
-                sh 'echo "<p>SonarQube analysis completed successfully.</p>" >> codequality/index.html'
+                sh 'mkdir -p report'
+                sh 'echo "<h1>Code Quality Report</h1>" > report/index.html'
+                sh 'echo "<p>SonarQube Quality Gate Passed.</p>" >> report/index.html'
             }
         }
 
         stage('Publish HTML Report') {
             steps {
                 publishHTML([
-                    reportDir: 'codequality',
+                    reportDir: 'report',
                     reportFiles: 'index.html',
-                    reportName: 'Code Quality Report'
+                    reportName: 'Code Quality Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: false
                 ])
             }
         }
