@@ -2,10 +2,8 @@ pipeline {
     agent any
 
     tools {
-        // Must match Jenkins → Global Tool Configuration names
-        jdk 'jdk21'
-        maven 'maven'
-        sonarScanner 'sonarqube'
+        jdk 'jdk21'          // Configure in Jenkins Global Tools
+        maven 'maven'        // Configure in Jenkins Global Tools
     }
 
     environment {
@@ -22,10 +20,9 @@ pipeline {
             }
         }
 
-        stage('Verify Java Installation') {
+        stage('Verify Java') {
             steps {
                 sh "java -version"
-                sh "echo Using JAVA_HOME = $JAVA_HOME"
             }
         }
 
@@ -35,9 +32,7 @@ pipeline {
                     sh """
                         sonar-scanner \
                         -Dsonar.projectKey=code-quality-reporter \
-                        -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
-                        -Dsonar.java.binaries=target \
                         -Dsonar.host.url=http://host.docker.internal:9000
                     """
                 }
@@ -56,7 +51,7 @@ pipeline {
             steps {
                 sh 'mkdir -p report'
                 sh 'echo "<h1>Code Quality Report</h1>" > report/index.html'
-                sh 'echo "<p>SonarQube Quality Gate Passed.</p>" >> report/index.html'
+                sh 'echo "<p>Analysis Successful</p>" >> report/index.html'
             }
         }
 
@@ -67,7 +62,8 @@ pipeline {
                     reportFiles: 'index.html',
                     reportName: 'Code Quality Report',
                     keepAll: true,
-                    alwaysLinkToLastBuild: true
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: false
                 ])
             }
         }
