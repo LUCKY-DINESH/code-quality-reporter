@@ -31,7 +31,7 @@ pipeline {
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=http://172.19.0.3:9000
+                        -Dsonar.host.url=http://host.docker.internal:9000
                     """
                 }
             }
@@ -67,3 +67,4 @@ pipeline {
         }
     }
 }
+
