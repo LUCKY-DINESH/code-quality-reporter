@@ -2,11 +2,7 @@ pipeline {
     agent any
 
     tools {
-        // Make sure in Jenkins → Global Tool Configuration
-        // You configure a JDK and name it "JDK17"
         jdk 'jdk21'
-
-        // Also configure Maven and name it "MAVEN3"
         maven 'maven'
     }
 
@@ -25,9 +21,9 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-        JAVA_HOME = "/opt/java/openjdk"
-        PATH = "${JAVA_HOME}/bin:${PATH}"
-    }
+                JAVA_HOME = "/opt/java/openjdk"
+                PATH = "${JAVA_HOME}/bin:${PATH}"
+            }
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
@@ -35,7 +31,7 @@ pipeline {
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=http://host.docker.internal:9000
+                        -Dsonar.host.url=http://172.19.0.3:9000
                     """
                 }
             }
@@ -71,6 +67,3 @@ pipeline {
         }
     }
 }
-
-
-
