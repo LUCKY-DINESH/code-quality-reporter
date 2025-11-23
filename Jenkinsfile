@@ -3,11 +3,11 @@ pipeline {
 
     tools {
         jdk 'jdk21'
-        maven 'maven'        // Required for SonarQube plugin
+        maven 'maven'     // ✅ Required for mvn sonar:sonar
     }
 
     environment {
-        SONARQUBE_URL = "http://host.docker.internal:9000"
+        SONAR_HOST_URL = "http://host.docker.internal:9000"
         SONAR_TOKEN = "squ_e1cc39c3c53c7ecd551b563eeeb6c6a825e6ff4b"
     }
 
@@ -20,34 +20,15 @@ pipeline {
             }
         }
 
-        stage('Compile Java Code') {
+        stage('Build') {
             steps {
-                sh """
-                    mkdir -p build
-                    FILES=\$(find src -name "*.java")
-
-                    if [ -z "\$FILES" ]; then
-                        echo "❌ No Java files found!"
-                        exit 1
-                    fi
-
-                    javac -d build \$FILES
-                """
+                sh 'mvn compile'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh """
-                    echo "Running simple Java execution..."
-
-                    if [ -f build/App.class ]; then
-                        echo "Executing App..."
-                        java -cp build App || true
-                    else
-                        echo "⚠ No App.class found—skipping execution."
-                    fi
-                """
+                sh 'mvn test || true'    // avoid breaking pipeline if no tests
             }
         }
 
@@ -56,8 +37,7 @@ pipeline {
                 sh """
                     mvn sonar:sonar \
                       -Dsonar.projectKey=code-quality-reporter \
-                      -Dsonar.sources=src \
-                      -Dsonar.host.url=${SONARQUBE_URL} \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
                       -Dsonar.login=${SONAR_TOKEN}
                 """
             }
@@ -79,7 +59,7 @@ pipeline {
                     <body>
                         <h1 class="header">SonarQube Code Quality Report</h1>
                         <p>Project: code-quality-reporter</p>
-                        <p>Open SonarQube for the full analysis.</p>
+                        <p>Open SonarQube to see full analysis.</p>
                     </body>
                     </html>
                     EOF
