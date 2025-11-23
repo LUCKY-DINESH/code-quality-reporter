@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk21'
-        maven 'maven'
+        maven 'maven'      // Jenkins → Global Tools → Maven
+        jdk 'jdk21'        // Jenkins → Global Tools → JDK
     }
 
     environment {
-        SONAR_SCANNER = tool 'sonarqube'
+        SONARQUBE_URL = "http://host.docker.internal:9000"
     }
 
     stages {
@@ -19,19 +19,25 @@ pipeline {
             }
         }
 
+        stage('Build & Test') {
+            steps {
+                sh "mvn clean compile test"
+            }
+        }
+
         stage('SonarQube Analysis') {
             environment {
-                JAVA_HOME = "/opt/java/openjdk"
-                PATH = "${JAVA_HOME}/bin:${PATH}"
+                // Sonar token stored in Jenkins credentials (Kind: Secret Text)
+                SONAR_TOKEN = credentials('sonarqube')
             }
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh """
-                        ${SONAR_SCANNER}/bin/sonar-scanner \
+                        mvn sonar:sonar \
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://host.docker.internal:9000
+                        -Dsonar.host.url=${SONARQUBE_URL} \
+                        -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
             }
@@ -39,17 +45,35 @@ pipeline {
 
         stage('Wait for Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 3, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
         }
 
-        stage('Create HTML Report') {
+        stage('Generate HTML Report') {
             steps {
-                sh 'mkdir -p report'
-                sh 'echo "<h1>Code Quality Report</h1>" > report/index.html'
-                sh 'echo "<p>SonarQube Quality Gate Passed.</p>" >> report/index.html'
+                sh """
+                    mkdir -p report
+                    cat > report/index.html << 'EOF'
+                    <html>
+                    <head>
+                        <title>Code Quality Report</title>
+                        <style>
+                            body { font-family: Arial; padding: 20px; }
+                            .pass { color: green; font-size: 20px; }
+                            .header { font-size: 28px; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1 class="header">SonarQube Code Quality Report</h1>
+                        <p class="pass">Quality Gate: PASSED ✔</p>
+                        <p>Project: code-quality-reporter</p>
+                        <p>View full report in SonarQube UI.</p>
+                    </body>
+                    </html>
+                    EOF
+                """
             }
         }
 
@@ -59,12 +83,10 @@ pipeline {
                     reportDir: 'report',
                     reportFiles: 'index.html',
                     reportName: 'Code Quality Report',
-                    keepAll: true,
                     alwaysLinkToLastBuild: true,
-                    allowMissing: false
+                    keepAll: true
                 ])
             }
         }
     }
 }
-
