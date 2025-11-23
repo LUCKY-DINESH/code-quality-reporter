@@ -8,7 +8,6 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = "http://172.18.0.2:9000"
-        SONAR_TOKEN = "squ_e1cc39c3c53c7ecd551b563eeeb6c6a825e6ff4b"
     }
 
     stages {
@@ -33,19 +32,10 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                sh """
-                    mvn -B sonar:sonar \
-                      -Dsonar.projectKey=code-quality-reporter \
-                      -Dsonar.projectName=code-quality-reporter \
-                      -Dsonar.sources=src \
-                      -Dsonar.java.binaries=target/classes \
-                      -Dsonar.host.url=${SONAR_HOST_URL} \
-                      -Dsonar.login=${SONAR_TOKEN} \
-                      -Dsonar.sourceEncoding=UTF-8
-                """
+            environment {
+                SONAR_HOST_URL = 'SONAR_HOST_URL' // Replace with your SonarQube URL
+                SONAR_AUTH_TOKEN = credentials('sonarqube') // Store your token in Jenkins credentials
             }
-        }
 
         stage('Generate HTML Report') {
             steps {
@@ -86,4 +76,5 @@ pipeline {
 
     }
 }
+
 
