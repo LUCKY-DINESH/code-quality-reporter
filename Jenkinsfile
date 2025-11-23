@@ -33,9 +33,17 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                SONAR_HOST_URL = 'SONAR_HOST_URL' // Replace with your SonarQube URL
-                SONAR_AUTH_TOKEN = credentials('sonarqube') // Store your token in Jenkins credentials
+                SONAR_AUTH_TOKEN = credentials('sonarqube')  // your stored token
             }
+            steps {
+                sh """
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=code-quality-reporter \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_AUTH_TOKEN}
+                """
+            }
+        }
 
         stage('Generate HTML Report') {
             steps {
@@ -74,7 +82,5 @@ pipeline {
             }
         }
 
-    }
-}
-
-
+    } // end stages
+} // end pipeline
