@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = "http://host.docker.internal:9000"
+        SONAR_HOST_URL = "http://172.18.0.2:9000"
         SONAR_TOKEN = "squ_e1cc39c3c53c7ecd551b563eeeb6c6a825e6ff4b"
     }
 
@@ -86,3 +86,4 @@ pipeline {
 
     }
 }
+
