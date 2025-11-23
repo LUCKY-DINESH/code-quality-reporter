@@ -8,6 +8,7 @@ pipeline {
 
     environment {
         SONARQUBE_URL = "http://host.docker.internal:9000"
+        SONAR_TOKEN = "squ_e1cc39c3c53c7ecd551b563eeeb6c6a825e6ff4b"    // No Jenkins credentials used
     }
 
     stages {
@@ -26,19 +27,14 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            environment {
-                SONAR_TOKEN = credentials('sonarqube')  // Secret Text token
-            }
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh """
-                        mvn sonar:sonar \
+                sh """
+                    mvn sonar:sonar \
                         -Dsonar.projectKey=code-quality-reporter \
                         -Dsonar.projectName=code-quality-reporter \
                         -Dsonar.host.url=${SONARQUBE_URL} \
                         -Dsonar.login=${SONAR_TOKEN}
-                    """
-                }
+                """
             }
         }
 
@@ -60,15 +56,13 @@ pipeline {
                         <title>Code Quality Report</title>
                         <style>
                             body { font-family: Arial; padding: 20px; }
-                            .pass { color: green; font-size: 20px; }
                             .header { font-size: 28px; font-weight: bold; }
                         </style>
                     </head>
                     <body>
                         <h1 class="header">SonarQube Code Quality Report</h1>
-                        <p class="pass">Quality Gate: PASSED ✔</p>
                         <p>Project: code-quality-reporter</p>
-                        <p>View full report in SonarQube Dashboard.</p>
+                        <p>Check SonarQube dashboard for full metrics.</p>
                     </body>
                     </html>
                     EOF
@@ -82,9 +76,9 @@ pipeline {
                     reportDir: 'report',
                     reportFiles: 'index.html',
                     reportName: 'Code Quality Report',
-                    allowMissing: false,          // REQUIRED BY YOUR PLUGIN
                     alwaysLinkToLastBuild: true,
-                    keepAll: true
+                    keepAll: true,
+                    allowMissing: false
                 ])
             }
         }
