@@ -28,16 +28,16 @@ pipeline {
             }
         }
 
-        stage('Run Tests (simple)') {
+        stage('Run Tests') {
             steps {
                 sh """
-                    echo "No Maven. Running simple Java tests."
+                    echo "Running simple Java tests..."
 
-                    # Example: run main class if you have it
-                    # Replace App with your class name
                     if [ -f build/App.class ]; then
-                        echo "Running App..."
+                        echo "Executing App.java output:"
                         java -cp build App || true
+                    else
+                        echo "No App.class found → skipping run"
                     fi
                 """
             }
@@ -71,7 +71,7 @@ pipeline {
                     <body>
                         <h1 class="header">SonarQube Code Quality Report</h1>
                         <p>Project: code-quality-reporter</p>
-                        <p>Check SonarQube dashboard for full metrics.</p>
+                        <p>Open SonarQube to see full analysis.</p>
                     </body>
                     </html>
                     EOF
@@ -86,7 +86,8 @@ pipeline {
                     reportFiles: 'index.html',
                     reportName: 'Code Quality Report',
                     alwaysLinkToLastBuild: true,
-                    keepAll: true
+                    keepAll: true,
+                    allowMissing: false    // ✅ FIX ADDED
                 ])
             }
         }
