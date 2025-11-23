@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         jdk 'jdk21'
-        maven 'maven'     // ✅ Required for mvn sonar:sonar
+        maven 'maven'
     }
 
     environment {
@@ -22,23 +22,27 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn -B compile'
             }
         }
 
-        stage('Run Tests') {
+        stage('Test') {
             steps {
-                sh 'mvn test || true'    // avoid breaking pipeline if no tests
+                sh 'mvn -B test || true'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 sh """
-                    mvn sonar:sonar \
+                    mvn -B sonar:sonar \
                       -Dsonar.projectKey=code-quality-reporter \
+                      -Dsonar.projectName=code-quality-reporter \
+                      -Dsonar.sources=src \
+                      -Dsonar.java.binaries=target/classes \
                       -Dsonar.host.url=${SONAR_HOST_URL} \
-                      -Dsonar.login=${SONAR_TOKEN}
+                      -Dsonar.login=${SONAR_TOKEN} \
+                      -Dsonar.sourceEncoding=UTF-8
                 """
             }
         }
@@ -79,5 +83,6 @@ pipeline {
                 ])
             }
         }
+
     }
 }
