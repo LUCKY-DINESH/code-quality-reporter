@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven'      // Jenkins → Global Tools → Maven
-        jdk 'jdk21'        // Jenkins → Global Tools → JDK
+        maven 'maven'
+        jdk 'jdk21'
     }
 
     environment {
@@ -27,8 +27,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                // Sonar token stored in Jenkins credentials (Kind: Secret Text)
-                SONAR_TOKEN = credentials('sonarqube')
+                SONAR_TOKEN = credentials('sonarqube')  // Secret Text token
             }
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -69,7 +68,7 @@ pipeline {
                         <h1 class="header">SonarQube Code Quality Report</h1>
                         <p class="pass">Quality Gate: PASSED ✔</p>
                         <p>Project: code-quality-reporter</p>
-                        <p>View full report in SonarQube UI.</p>
+                        <p>View full report in SonarQube Dashboard.</p>
                     </body>
                     </html>
                     EOF
@@ -83,6 +82,7 @@ pipeline {
                     reportDir: 'report',
                     reportFiles: 'index.html',
                     reportName: 'Code Quality Report',
+                    allowMissing: false,          // REQUIRED BY YOUR PLUGIN
                     alwaysLinkToLastBuild: true,
                     keepAll: true
                 ])
