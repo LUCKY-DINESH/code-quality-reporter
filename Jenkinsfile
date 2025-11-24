@@ -33,7 +33,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                SONAR_AUTH_TOKEN = credentials('sonarqube')  // your stored token
+                SONAR_AUTH_TOKEN = credentials('sonarqube')
             }
             steps {
                 sh """
@@ -82,5 +82,5 @@ pipeline {
             }
         }
 
-    } // end stages
-} // end pipeline
+    } // stages
+}
