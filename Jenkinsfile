@@ -1,4 +1,48 @@
-stage('Generate HTML Report') {
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk21'
+        maven 'maven'
+    }
+
+    environment {
+        SONAR_HOST_URL = "http://172.18.0.2:9000"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/LUCKY-DINESH/code-quality-reporter.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn -B compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn -B test || true'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                sh """
+                    mvn sonar:sonar \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=admin \
+                        -Dsonar.password=admin
+                """
+            }
+        }
+
+        stage('Generate HTML Report') {
     steps {
         sh """
             mkdir -p report
@@ -100,5 +144,20 @@ stage('Generate HTML Report') {
 </html>
 EOF
         """
+    }
+}
+
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML([
+                    reportDir: 'report',
+                    reportFiles: 'index.html',
+                    reportName: 'Code Quality Report',
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true
+                ])
+            }
+        }
+
     }
 }
